@@ -5,14 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Zebra Barcode Label Generator</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 2em; }
-  input { margin: 0.3em; padding: 0.3em; width: 150px; }
-  button { margin-top: 1em; padding: 0.5em 1em; }
-  textarea { width: 100%; height: 250px; margin-top: 1em; }
-  label { display: block; margin-top: 0.5em; }
+  body { font-family: Arial, sans-serif; margin: 1em; padding: 0; }
+  h2 { font-size: 1.5em; }
+  label { display: block; margin-top: 0.5em; font-size: 1em; }
+  input { margin-top: 0.2em; padding: 0.5em; font-size: 1em; width: 100%; max-width: 200px; }
+  button { margin-top: 1em; padding: 0.6em 1.2em; font-size: 1em; }
+  textarea { width: 100%; height: 250px; margin-top: 1em; font-family: monospace; font-size: 0.9em; }
+  @media (max-width: 480px) {
+    button, input { font-size: 1em; }
+  }
 </style>
 </head>
 <body>
+
 <h2>Zebra Label Generator (50×32 mm, Code128, 10 mm padding)</h2>
 
 <label>Prefix: <input id="prefix" value="BL" /></label>
@@ -21,10 +26,13 @@
 
 <button id="generate">Generate ZPL</button>
 <button id="download" disabled>Download .ZPL</button>
+<button id="reset">Reset Used Barcodes</button>
 
 <textarea id="output" placeholder="ZPL code will appear here..."></textarea>
 
 <script>
+console.log("Zebra Label Generator script loaded!");
+
 const USED_KEY = "used_barcodes";
 
 function loadUsed() {
@@ -33,6 +41,11 @@ function loadUsed() {
 
 function saveUsed(codes) {
   localStorage.setItem(USED_KEY, JSON.stringify(codes));
+}
+
+function resetUsed() {
+  localStorage.removeItem(USED_KEY);
+  alert("✅ Used barcodes cleared.");
 }
 
 function generateZPL(prefix, start, end) {
@@ -71,7 +84,7 @@ function generateZPL(prefix, start, end) {
   }
 
   saveUsed(newUsed);
-  alert(\`Created \${newCount} new labels, skipped \${skipped} already used.\`);
+  alert(`✅ Created ${newCount} new labels, skipped ${skipped} already used.`);
   return zpl.trim();
 }
 
@@ -80,7 +93,7 @@ document.getElementById("generate").onclick = () => {
   const start = parseInt(document.getElementById("start").value);
   const end = parseInt(document.getElementById("end").value);
   if (!prefix || isNaN(start) || isNaN(end) || start > end) {
-    alert("Please enter a valid prefix and number range.");
+    alert("⚠️ Please enter a valid prefix and number range.");
     return;
   }
   const zpl = generateZPL(prefix, start, end);
@@ -97,6 +110,11 @@ document.getElementById("download").onclick = () => {
   a.click();
   URL.revokeObjectURL(url);
 };
+
+document.getElementById("reset").onclick = () => {
+  resetUsed();
+};
 </script>
+
 </body>
 </html>
