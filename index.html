@@ -197,7 +197,7 @@
                             {/* Logo */}
                             <g transform="translate(100, 150)">
                                 {isBlue ? (
-                                    <text x="0" y="5" fontSize="80" textAnchor="middle" dominantBaseline="central" fill="white" fillOpacity="1" style={{ fontFamily: 'sans-serif', fontWeight: 'bold' }}>♻</text>
+                                    <text x="0" y="5" fontSize="55" textAnchor="middle" dominantBaseline="central" fill="white" fillOpacity="1" style={{ fontFamily: 'sans-serif', fontWeight: 'bold' }}>♻</text>
                                 ) : (
                                     /* Wire Basket Icon for General Waste - Scaled down to 2.5 and re-centered */
                                     <g transform="translate(-30, -30) scale(2.5)">
@@ -239,64 +239,6 @@
                 } catch (e) {
                     console.error("Notification permission error", e);
                 }
-            };
-
-            const downloadIcsFile = () => {
-                // 1. Calculate the next occurrence
-                const dayIndex = tempSettings.collectionDayOfWeek;
-                const today = new Date();
-                const currentDay = today.getDay();
-                let daysUntilReminder = (dayIndex - 1) - currentDay; // Day before
-                if (daysUntilReminder < 0) daysUntilReminder += 7; 
-                
-                const [hours, minutes] = tempSettings.reminderTime.split(':').map(Number);
-                const reminderDate = new Date(today);
-                reminderDate.setDate(today.getDate() + daysUntilReminder);
-                reminderDate.setHours(hours, minutes, 0, 0); 
-
-                // 2. Format Dates for ICS
-                const pad = (n) => n < 10 ? '0' + n : n;
-                const formatDate = (d) => {
-                    return d.getUTCFullYear() +
-                    pad(d.getUTCMonth() + 1) +
-                    pad(d.getUTCDate()) + 'T' +
-                    pad(d.getUTCHours()) +
-                    pad(d.getUTCMinutes()) +
-                    pad(d.getUTCSeconds()) + 'Z';
-                };
-
-                const dtStamp = formatDate(new Date());
-                const dtStart = formatDate(reminderDate);
-                const dtEnd = formatDate(new Date(reminderDate.getTime() + 30 * 60000)); // 30 mins later
-
-                // 3. Construct ICS Content
-                const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//BinDay//App//EN
-BEGIN:VEVENT
-UID:${Date.now()}@binday.app
-DTSTAMP:${dtStamp}
-DTSTART:${dtStart}
-DTEND:${dtEnd}
-RRULE:FREQ=WEEKLY
-SUMMARY:Put The Bins Out
-DESCRIPTION:Reminder from BinDay to put out your bins for collection tomorrow.
-BEGIN:VALARM
-TRIGGER:-PT0M
-ACTION:DISPLAY
-DESCRIPTION:Bin Reminder
-END:VALARM
-END:VEVENT
-END:VCALENDAR`;
-
-                // 4. Create and Trigger Download
-                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.setAttribute('download', 'binday_reminder.ics');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
             };
 
             return (
@@ -408,13 +350,6 @@ END:VCALENDAR`;
                                         />
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={downloadIcsFile}
-                                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors text-sm font-medium"
-                                >
-                                    {Icons.CalendarPlus} Add to System Calendar (Native)
-                                </button>
-                                <p className="text-xs text-gray-400 text-center">Note: Apple blocks web apps from setting Clock alarms. This adds a native Calendar Event instead.</p>
                             </div>
                         </div>
 
@@ -567,16 +502,19 @@ END:VCALENDAR`;
                             </span>
                         </div>
                         
-                        {/* Central Bin Visualizer - Added pb-24 to shift visual center upwards */}
-                        <div className="flex-1 flex items-center justify-center w-full pb-24">
+                        {/* Central Bin Visualizer - Added -mt-16 to shift visual center upwards */}
+                        <div className="flex-1 flex items-center justify-center w-full pb-24 -mt-16">
                             <BinVisualizer color={nextBinData.bin} isToday={isCollectionDay} />
                         </div>
 
                         {/* Bottom Text Section */}
-                        <div className="text-center -mt-24 relative z-10">
+                        <div className="text-center -mt-36 relative z-10">
                             <h2 className="text-6xl font-extrabold tracking-tight text-gray-800 dark:text-white transition-colors duration-300 leading-none">{nextBinData.bin} Bin</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mt-1 transition-colors duration-300">
                                 {isBlue ? 'Recycling Week' : 'General Waste'}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-14 font-medium">
+                                Put bins out after 6pm the night before
                             </p>
                             {isCollectionDay && (
                                 <div className="mt-3">
